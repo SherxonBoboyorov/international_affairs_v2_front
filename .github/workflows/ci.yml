@@ -7,7 +7,7 @@ on:
     branches: [main, master, dev]
 
 jobs:
-  lint:
+  check_with_best_practices:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

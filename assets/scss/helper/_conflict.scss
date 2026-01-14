@@ -1,10 +1,10 @@
 @use "../helper/mixin" as *;
 
 .my-style {
-  // --el-menu-border-color:#ff040e;
   .el {
     &-header {
       height: auto;
+      padding: 0;
       border-bottom: 1px solid var(--el-menu-border-color);
 
       &.mini-menu {
@@ -16,7 +16,6 @@
       display: flex;
       flex-direction: column;
       max-height: 100vh;
-      margin-right: 18px;
       border-right: 1px solid var(--el-menu-border-color);
       transition: all 0.3s;
 
@@ -46,10 +45,9 @@
     }
 
     &-main {
-      padding: 24px;
-      background-color: #fff;
-
-      // transition: .3s;
+      height: calc(100vh - 110px);
+      padding: 50px;
+      background: rgb(240 245 248 / 100%);
     }
 
     &-form {
@@ -121,14 +119,14 @@
     &-input-affix-wrapper,
     &:not(.el-input-number--small) {
       width: 100% !important;
-      height: 36px !important;
+      height: 50px !important;
       padding: 10px 20px !important;
       font-size: 16px;
       font-weight: 400;
       color: #4f4f4f;
-      background: #f5f5f5 !important;
+      background: rgb(240 245 248 / 100%) !important;
       border: none !important;
-      border-radius: 8px !important;
+      border-radius: 4px !important;
       box-shadow: none !important;
 
       &:hover {
@@ -173,9 +171,10 @@
       &__wrapper,
       &:not(.el-input-number--small .el-input__wrapper) {
         padding: 0;
-        outline: none;
-        background: #f5f5f5 !important;
-        border: none;
+        outline: none !important;
+        background: rgb(240 245 248) !important;
+        border: none !important;
+        border-radius: 4px;
         box-shadow: none !important;
       }
 
@@ -259,16 +258,15 @@
         }
       }
 
-      &.black {
+      &.dark {
         font-size: 16px;
         font-weight: 400;
         line-height: 22px;
         color: #fff;
-        background-color: #000;
+        background-color: #880019;
 
         &:hover {
-          background-color: #000 !important;
-          opacity: 0.8;
+          background-color: rgb(157 0 29) !important;
         }
       }
 
@@ -281,6 +279,18 @@
 
         &:hover {
           background-color: #75ba6b;
+        }
+      }
+
+      &.blue {
+        background-color: #123654;
+
+        span {
+          color: #fff !important;
+        }
+
+        &:hover {
+          background-color: #123654;
         }
       }
 
@@ -333,7 +343,6 @@
     }
 
     &-menu {
-      padding: 16px;
       margin-bottom: auto;
       overflow: none auto;
       border-right: none;
@@ -348,48 +357,39 @@
 
       &-item {
         width: inherit !important;
-        min-height: 36px;
-        padding: 12px !important;
-        margin-bottom: 10px;
+        min-height: 60px;
+        padding: 20px 40px !important;
+        margin-bottom: 0;
         overflow: hidden;
         font-size: 16px;
         font-weight: 600;
-
-        // white-space: break-spaces !important;
         line-height: 1.2;
-        color: #000 !important;
-        background: linear-gradient(
-          90deg,
-          #f6f7f8 100%,
-          rgb(255 255 255) 100%
-        );
-        background-color: none !important;
-        background-repeat: no-repeat;
-        background-size: 0% 100%;
-        border: 1px solid var(--el-menu-border-color);
-        border-radius: 8px;
+        color: #000;
+        border-bottom: 1px solid var(--el-menu-border-color);
         transition: all 0.3s;
 
-        &:hover {
-          background-color: transparent !important;
-          background-size: 100% 100%;
-
-          // box-shadow: inset -8px 0 #3e94d1;
+        &:last-child {
+          margin-bottom: 0;
+          border-bottom: none !important;
         }
 
+        &:hover,
         &.isActive {
-          color: #000;
-          box-shadow: inset -8px 0 #e5e8eb;
-          transform: scaleX(1.05);
+          color: #880019;
+          background-color: transparent;
+
+          .svg:not(.stroke) {
+            path {
+              fill: #880019;
+            }
+          }
         }
 
         .svg {
-          width: 20px;
-          height: 20px;
+          width: 26px !important;
 
           svg {
-            width: 2em;
-            height: 2em;
+            width: 26px !important;
           }
         }
       }
@@ -487,6 +487,14 @@
         .cell {
           font-weight: 600 !important;
           color: #000 !important;
+        }
+      }
+
+      &__cell {
+        padding: 0 !important;
+
+        .cell {
+          padding: 20px;
         }
       }
     }
@@ -710,7 +718,7 @@
         font-weight: 600;
         line-height: 16px;
         color: #fff;
-        background-color: #d4183d;
+        background-color: #880019;
         border-radius: 8px;
       }
     }

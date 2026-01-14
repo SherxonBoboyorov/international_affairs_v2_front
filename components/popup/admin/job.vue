@@ -100,7 +100,7 @@ const submitForm = async (formEl) => {
       </el-row>
     </el-form>
     <el-button
-      class="black w-full mt-24"
+      class="dark w-full mt-24"
       :loading="loading"
       @click="submitForm(ruleFormRef)">
       Сохранить</el-button

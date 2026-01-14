@@ -1,13 +1,10 @@
 <script setup>
-import { ArrowRightBold } from "@element-plus/icons-vue";
-
 const variableStore = useVariebleStore();
 const authStore = useAuthStore();
 const cookieStore = useCookiesStore();
 const router = useRouter();
 const route = useRoute();
 
-// Fix: Define 'activeMenu' as a computed property, not as a function
 const activeMenu = computed(() => {
   return (path) => route.path.startsWith(path);
 });
@@ -29,43 +26,6 @@ const userLogOut = () => {
 </script>
 
 <template>
-  <el-icon
-    class="layout-menu-collapse"
-    @click="cookieStore.isOpenMenu = !cookieStore.isOpenMenu"
-    ><ArrowRightBold
-  /></el-icon>
-
-  <!-- <div class="layout-header"></div> -->
-  <div class="layout-profile">
-    <div class="layout-profile-icon">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        class="lucide lucide-user w-4 h-4 text-primary-foreground"
-        aria-hidden="true">
-        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
-        <circle
-          cx="12"
-          cy="7"
-          r="4"></circle>
-      </svg>
-    </div>
-    <div class="layout-profile-info">
-      <span
-        ><b>{{ JSON.parse(authStore.user).name }}</b></span
-      >
-      <br />
-      <span>{{ variableStore.roles[JSON.parse(authStore.user).role] }}</span>
-    </div>
-  </div>
-
   <el-scrollbar height="100%">
     <el-menu
       class="layout-menu"
@@ -88,33 +48,13 @@ const userLogOut = () => {
       class="layout-menu"
       :collapse="cookieStore.isOpenMenu">
       <el-menu-item
-        :class="{ isActive: activeMenu(`/cabinet/${authStore.role}/profile`) }"
-        :index="`/cabinet/${authStore.role}/profile`"
-        @click="handleClickMenu(`/cabinet/${authStore.role}/profile`)">
-        <el-icon style="margin-right: 12px !important"
-          ><Svg name="user"
-        /></el-icon>
-        <template #title>Профиль</template>
-      </el-menu-item>
-      <el-menu-item index="/cabinet/admin/notifications">
-        <el-icon style="margin-right: 12px !important"
-          ><Svg name="notification"
-        /></el-icon>
-        <template #title
-          >Уведомления
-          <el-tag
-            type="info"
-            style="color: #000"
-            class="ml-auto"
-            >3</el-tag
-          ></template
-        >
-      </el-menu-item>
-      <el-menu-item
+        style="display: flex; justify-content: center; margin-bottom: 20px"
         index="/cabinet/admin/logout"
         @click="userLogOut">
-        <el-icon style="margin-right: 12px !important"
-          ><Svg name="exit"
+        <el-icon
+          ><Svg
+            name="exit"
+            class="stroke"
         /></el-icon>
         <template #title>Выйти</template>
       </el-menu-item>

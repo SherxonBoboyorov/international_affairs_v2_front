@@ -7,7 +7,7 @@ module.exports = {
           const jiraIdRegex = /^[A-Z]+-\d+$/;
           return [
             jiraIdRegex.test(scope),
-            `The scope must be a Jira Task ID (e.g., "feat(IA-25): create project")`,
+            `The scope must be a Jira Task ID (e.g., "feat(IA-25): commit message")`,
           ];
         },
       },

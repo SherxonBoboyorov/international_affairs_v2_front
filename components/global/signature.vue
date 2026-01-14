@@ -108,14 +108,14 @@ const clearSignature = () => {
         class="d-flex gap-12"
         style="width: max-content">
         <el-button
-          class="h-36 grey"
+          class="h-50 grey"
           @click="clearSignature"
           ><Svg
             name="eraser"
             class="mr-0"
         /></el-button>
         <el-button
-          class="h-36 grey"
+          class="h-50 grey"
           :disabled="isSavedSignature"
           @click="saveSignature">
           <Svg

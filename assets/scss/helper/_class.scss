@@ -252,9 +252,10 @@
   }
 
   .bg-white {
+    overflow: hidden;
     background-color: #fff;
     border: 1px solid var(--el-menu-border-color);
-    border-radius: 6px;
+    border-radius: 20px;
 
     &.large {
       padding: 30px;

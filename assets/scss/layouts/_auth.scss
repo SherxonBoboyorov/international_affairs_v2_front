@@ -1,20 +1,8 @@
-@use "../helper/mixin" as *;
+@use "../helper/mixin"as *;
 
 .auth {
   width: 100vw;
   height: 100vh;
-
-  // &-header {
-  //   width: 100%;
-  //   display: flex;
-  //   align-items: center;
-  //   justify-content: center;
-  //   padding: 20px 0;
-
-  //   img {
-  //     height: 44px;
-  //   }
-  // }
 
   &-body {
     display: flex;
@@ -22,26 +10,31 @@
     align-items: center;
     justify-content: center;
     width: 100%;
-
-    // height: calc(100vh - 84px);
     height: 100vh;
     padding: 20px;
-    background: rgb(245 245 245);
-
-    h1 {
-      margin-bottom: 0;
-      font-size: 20px;
-      font-weight: 600;
-      color: rgb(33 33 33);
-      text-align: center;
-    }
+    background: #f0f5f8;
 
     h2 {
-      margin-bottom: 12px;
+      margin-bottom: 20px;
+      font-size: 30px;
+      font-style: bold;
+      font-weight: 700;
+      line-height: 42px;
+      color: #880019;
+      text-transform: uppercase;
+    }
+
+    h3 {
+      width: max-content;
+      margin: 18px auto 0;
+      margin-top: 18px;
       font-size: 18px;
       font-weight: 600;
-      color: rgb(33 33 33);
+      line-height: 30px;
+      color: rgb(136 0 25 / 100%);
       text-align: center;
+      text-decoration-line: underline;
+      cursor: pointer;
     }
 
     &-logo {
@@ -62,10 +55,9 @@
     }
 
     &-form {
-      width: 550px;
-      padding: 24px;
+      width: 880px;
+      padding: 30px;
       background: #fff;
-      border: 1px solid #0000001a;
       border-radius: 12px;
 
       h1 {
