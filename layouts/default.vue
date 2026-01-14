@@ -8,7 +8,7 @@ const cookieStore = useCookiesStore();
       <el-header :class="cookieStore.isOpenMenu ? 'mini-menu' : ''">
         <LayoutsHeader />
       </el-header>
-      <el-container style="height: calc(100vh - 110px)">
+      <el-container style="height: calc(100vh - 112px)">
         <el-aside
           :class="{ mini: cookieStore.isOpenMenu }"
           :width="cookieStore.isOpenMenu ? '84px' : '300px'"
