@@ -12,7 +12,6 @@ const { data: contractsList } = await useAsyncData("custom_contract_list", () =>
 //   const { data: contractsList } = await GET(
 //     `${role.value}/requirements/get-e-dist-columns`
 //   );
-//   console.log(contractsList, "contractsList");
 // });
 </script>
 

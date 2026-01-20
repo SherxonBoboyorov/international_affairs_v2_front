@@ -1,4 +1,7 @@
-<script setup>
+<script setup lang="ts">
+/**
+ * Asosiy sahifa - avtomatik ravishda login sahifasiga yo'naltiradi
+ */
 definePageMeta({
   layout: "auth",
 });

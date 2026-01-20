@@ -1,10 +1,16 @@
-<script setup>
+<script setup lang="ts">
 import { vMaska } from "maska/vue";
-const value = defineModel("value", { type: [String, Number] });
+
+/**
+ * Valyuta kiritish komponenti
+ */
+const value = defineModel<number | string>("value");
+
+// Maska sozlamalari
 const options = reactive({
   eager: true,
   mask: "0.99",
-  postProcess: (val) => {
+  postProcess: (val: string) => {
     if (!val) return "";
 
     const sub = 3 - (val.includes(".") ? val.length - val.indexOf(".") : 0);
@@ -13,11 +19,11 @@ const options = reactive({
       currency: "USD",
       style: "currency",
     })
-      .format(val)
+      .format(Number(val))
       .slice(0, sub ? -sub : undefined)
       .replace("$", "");
   },
-  preProcess: (val) => val.replace(/[$,]/g, ""),
+  preProcess: (val: string) => val.replace(/[$,]/g, ""),
 });
 </script>
 <template>

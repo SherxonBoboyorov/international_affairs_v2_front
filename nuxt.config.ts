@@ -11,12 +11,19 @@ export default defineNuxtConfig({
     appManifest: false,
   },
   imports: {
-    dirs: ["store"],
+    dirs: ["store", "types"],
   },
   modules: [
     "@nuxt/eslint",
     "dayjs-nuxt",
-    "@element-plus/nuxt",
+    [
+      "@element-plus/nuxt",
+      {
+        /** Element Plus auto-import sozlamalari */
+        importStyle: "scss",
+        injectionID: { current: 0, prefix: 1024 },
+      },
+    ],
     [
       "@pinia/nuxt",
       { autoImports: ["defineStore", "acceptHMRUpdate"], disableVuex: true },
@@ -67,9 +74,9 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      apiBase: "https://edmsapi.sosgroup.uz/api/",
-      apiImgUrl: "https://edmsapi.sosgroup.uz/storage/",
-      baseUrl: "https://edmsapi.sosgroup.uz",
+      apiBase: "http://192.168.1.113:8000/api/",
+      apiImgUrl: "http://192.168.1.113:8000/storage/",
+      baseUrl: "http://192.168.1.113:8000",
       tinymceKEY: "ptshvlsgd005gl07uua59lyyiiqia5pfqv5n0un2dbi820nj",
     },
   },

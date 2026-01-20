@@ -1,6 +1,22 @@
-<script setup>
+<script setup lang="ts">
+/**
+ * Layout uchun header komponenti
+ */
 const authStore = useAuthStore();
 const variebleStore = useVariebleStore();
+
+// Foydalanuvchi ma'lumotlarini hisoblash
+const userData = computed(() => {
+  if (authStore.user) {
+    try {
+      return JSON.parse(authStore.user);
+    } catch (e) {
+      console.error("User data parse error:", e);
+      return null;
+    }
+  }
+  return null;
+});
 </script>
 
 <template>
@@ -16,9 +32,9 @@ const variebleStore = useVariebleStore();
       class="layout-header-profile">
       <div class="layout-header-profile-info">
         <h3>
-          {{ JSON.parse(authStore.user, null, 2).name }}
+          {{ userData?.name }}
         </h3>
-        <h4>{{ variebleStore.roles[authStore.role] }}</h4>
+        <h4>{{ (variebleStore.roles as any)[authStore.role] }}</h4>
       </div>
       <el-badge :value="4">
         <el-button class="">

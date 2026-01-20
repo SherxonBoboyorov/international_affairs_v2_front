@@ -1,8 +1,8 @@
-@use "../helper/mixin"as *;
+@use "../helper/mixin" as *;
 
 .auth {
   width: 100vw;
-  height: 100vh;
+  min-height: 100vh;
 
   &-body {
     display: flex;
@@ -10,8 +10,9 @@
     align-items: center;
     justify-content: center;
     width: 100%;
-    height: 100vh;
+    min-height: 100vh;
     padding: 20px;
+    padding: 70px 0;
     background: #f0f5f8;
 
     h2 {

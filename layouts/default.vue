@@ -15,9 +15,7 @@ const cookieStore = useCookiesStore();
           style="position: relative; overflow: visible">
           <LayoutsSidebar />
         </el-aside>
-        <el-scrollbar
-          height="100%"
-          style="width: 100%">
+        <el-scrollbar style="width: 100%">
           <el-main
             :class="cookieStore.isOpenMenu ? 'mini-main' : ''"
             style="position: relative">

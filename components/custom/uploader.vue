@@ -137,10 +137,6 @@ const removeFile = (index) => {
       :color="buttonColor"
       @click.prevent="triggerFileInput">
       {{ text }}
-      <Svg
-        v-if="iconName"
-        class="ml-8 mr-0"
-        :name="iconName" />
     </el-button>
 
     <!-- Drag & Drop zonasi -->

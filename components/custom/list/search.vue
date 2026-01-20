@@ -1,12 +1,17 @@
-<script setup>
-const value = defineModel("search", { type: [String] });
-const loading = defineModel("loading", { type: [Boolean] });
+<script setup lang="ts">
+/**
+ * Qidiruv komponenti
+ */
+const value = defineModel<string>("search");
+const loading = defineModel<boolean>("loading");
 const emit = defineEmits(["submit"]);
-defineProps({
-  placeholder: {
-    default: "Поиск",
-    type: String,
-  },
+
+interface Props {
+  placeholder?: string;
+}
+
+withDefaults(defineProps<Props>(), {
+  placeholder: "Поиск",
 });
 </script>
 

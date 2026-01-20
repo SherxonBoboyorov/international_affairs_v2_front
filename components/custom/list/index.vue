@@ -1,9 +1,20 @@
-<script setup>
-defineProps({
-  headers: {
-    default: () => [],
-    type: Array,
-  },
+<script setup lang="ts">
+/**
+ * Maxsus jadval (list) komponenti
+ */
+interface Header {
+  class?: string;
+  colspan?: number;
+  index?: boolean;
+  title?: string;
+}
+
+interface Props {
+  headers?: Header[];
+}
+
+withDefaults(defineProps<Props>(), {
+  headers: () => [],
 });
 </script>
 

@@ -2,15 +2,15 @@ import validJson from "@/i18n/valid.json";
 
 export default (_error, isMessage) => {
   const errorStatusCode = _error.status && _error.status;
-  const errorData = _error._data.data;
+  const errorData = _error._data.errors;
+  const errorDataMessage = _error._data.message;
   let text = "";
 
   function flattenObject(obj) {
     let result = {};
-
     function recursiveFlatten(currentObj, currentKey) {
       for (let key in currentObj) {
-        if (currentObj.hasOwnProperty.call(key)) {
+        if (Object.prototype.hasOwnProperty.call(currentObj, key)) {
           let value = currentObj[key];
           let newKey = currentKey ? `${currentKey}.${key}` : key;
 
@@ -64,7 +64,6 @@ export default (_error, isMessage) => {
 
   if (typeof errorData === "object") {
     let result = flattenObject(errorData);
-
     Object.keys(result).forEach((key) => {
       let _value = result[key];
       if (_value.includes("field is required")) {
@@ -89,28 +88,25 @@ export default (_error, isMessage) => {
       navigateTo("/auth");
     }
   } else if (errorStatusCode === 500) {
-    ElMessage.error("! Tizimda no'sozlik status 500");
+    messageMeneger("! Tizimda no'sozlik status 500", "error");
   } else if (errorStatusCode === 404) {
-    ElMessage.error("Natija topilmadi");
+    messageMeneger("Natija topilmadi", "error");
   } else if (errorStatusCode === 400) {
-    ElMessage.error("Ma'lumot to'g'ri emas emas");
+    messageMeneger("Ma'lumot to'g'ri emas emas", "error");
     return "BLOKED";
   } else if (errorStatusCode === 409) {
-    ElMessage.error(text);
+    messageMeneger(text, "error");
     if (isMessage && isMessage !== "isNavigate") {
-      console.log(isMessage, "isMessage");
       navigateTo("/auth");
     }
     return "BLOKED";
   } else if (errorStatusCode === 403) {
-    if (isMessage) {
-      ElMessage.error(text);
+    if (isMessage && errorDataMessage) {
+      messageMeneger(errorDataMessage, "error");
     } else {
-      ElMessage.error("Sizning xuquqlaringiz yetarli emas");
+      messageMeneger("Sizning xuquqlaringiz yetarli emas", "error");
     }
     navigateTo("/auth");
     return "BLOKED";
-  } else {
-    ElMessage.error(text);
   }
 };

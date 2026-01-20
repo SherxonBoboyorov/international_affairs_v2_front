@@ -117,6 +117,21 @@
   &-uploader {
     width: 100%;
 
+    .el-button {
+      height: 50px;
+      padding: 0 40px;
+      background-color: #fff;
+      border: 1px solid #000;
+
+      &:hover {
+        background-color: #fff;
+      }
+
+      span {
+        color: #000;
+      }
+    }
+
     ul {
       padding-left: 0;
       margin: 0;

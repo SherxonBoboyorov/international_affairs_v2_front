@@ -37,6 +37,7 @@ export default withNuxt(
     prettier,
     {
       rules: {
+        "@typescript-eslint/no-explicit-any": "off",
         "security/detect-object-injection": "off", // Often noisy in frontend code
         "vue/block-order": [
           "error",
