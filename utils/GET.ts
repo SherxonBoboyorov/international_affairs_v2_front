@@ -1,17 +1,18 @@
+// /utils/GET.ts
 /**
  * GET so'rovi uchun xizmat qiluvchi funksiya
  * @param url - API manzili
  * @param query - So'rov parametrlari
  */
-export default async <T = unknown>(
+export default async function GET<T = unknown>(
   url: string,
-  query?: Record<string, unknown>
-): Promise<ApiResponse<T>> => {
+  query?: QueryParams
+): Promise<ApiResponse<T>> {
   const config = useRuntimeConfig();
   const authStore = useAuthStore();
 
   // Null, undefined bo'sh qiymatlarni filtrlab olish
-  const filteredQuery = query
+  const filteredQuery: Record<string, unknown> = query
     ? Object.fromEntries(
         Object.entries(query).filter(([_, value]) => {
           return (
@@ -24,21 +25,33 @@ export default async <T = unknown>(
       )
     : {};
 
-  const fullUrl =
-    Object.keys(filteredQuery).length > 0
-      ? `${config.public.apiBase + url}?${new URLSearchParams(filteredQuery as Record<string, string>)}`
-      : `${config.public.apiBase + url}`;
+  // URLSearchParams uchun value'larni stringga convert qilish
+  const stringQuery: Record<string, string> = Object.fromEntries(
+    Object.entries(filteredQuery).map(([key, value]) => {
+      return [key, String(value)];
+    })
+  );
+
+  const hasQuery = Object.keys(stringQuery).length > 0;
+
+  const fullUrl = hasQuery
+    ? `${config.public.apiBase + url}?${new URLSearchParams(stringQuery)}`
+    : `${config.public.apiBase + url}`;
 
   try {
-    const data = await $fetch<T>(fullUrl, {
+    const response = await $fetch<T>(fullUrl, {
       headers: {
         Authorization: authStore.access ? `Bearer ${authStore.access}` : "",
       },
       method: "GET",
+      // bu yerda ham stringQuery ishlatsang ham bo‘ladi, yoki filteredQuery ham ok
       query: filteredQuery,
     });
+
+    const responseData = response as any;
+
     return {
-      data,
+      data: responseData.data || responseData || null,
       status: true,
     };
   } catch (error: unknown) {
@@ -46,10 +59,10 @@ export default async <T = unknown>(
       error &&
       typeof error === "object" &&
       "response" in error &&
-      error.response
+      (error as { response?: unknown }).response
     ) {
-      myErorHandler(error.response as ErrorResponse);
+      myErorHandler((error as { response: ErrorResponse }).response);
     }
     throw error;
   }
-};
+}

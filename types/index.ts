@@ -13,12 +13,25 @@ export interface ApiResponse<T = unknown> {
  */
 export interface ErrorResponse {
   _data: {
-    data: Record<string, unknown> | string;
+    data?: Record<string, unknown> | string;
+    error?: Record<string, unknown> | string;
+    errors?: Record<string, unknown> | string;
+    message?: string;
   };
   status?: number;
 }
 
-/**
- * Validatsiya xabarlari uchun tur (valid.json fayli uchun)
- */
+export interface Pagination<T> {
+  current: number;
+  data?: T[];
+  items?: T[];
+  per_page: number;
+  size: number;
+  total: number;
+}
+
+export type QueryParams = Record<string, QueryValue>;
+
+export type QueryValue = boolean | null | number | string | undefined;
+
 export type ValidationMessages = Record<string, string>;

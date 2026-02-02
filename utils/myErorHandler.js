@@ -88,11 +88,11 @@ export default (_error, isMessage) => {
       navigateTo("/auth");
     }
   } else if (errorStatusCode === 500) {
-    messageMeneger("! Tizimda no'sozlik status 500", "error");
+    messageMeneger("Система ошибка 500", "error");
   } else if (errorStatusCode === 404) {
-    messageMeneger("Natija topilmadi", "error");
+    messageMeneger("Ничего не найдено", "error");
   } else if (errorStatusCode === 400) {
-    messageMeneger("Ma'lumot to'g'ri emas emas", "error");
+    messageMeneger("Информация неверна.", "error");
     return "BLOKED";
   } else if (errorStatusCode === 409) {
     messageMeneger(text, "error");
@@ -104,7 +104,7 @@ export default (_error, isMessage) => {
     if (isMessage && errorDataMessage) {
       messageMeneger(errorDataMessage, "error");
     } else {
-      messageMeneger("Sizning xuquqlaringiz yetarli emas", "error");
+      messageMeneger("У вас недостаточно прав", "error");
     }
     navigateTo("/auth");
     return "BLOKED";

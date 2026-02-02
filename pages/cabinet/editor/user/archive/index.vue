@@ -1,121 +1,70 @@
-<script setup>
+<script setup lang="ts">
 const router = useRouter();
-const role = ref("");
-const search = ref("");
-const loading = ref(true);
-const list = ref([]);
-const pagination = reactive({
+const requirementsScientificActivity = ref<RequirementsScientificActivity[]>(
+  []
+);
+
+// loader flag
+const loading = ref<boolean>(true);
+
+// list – bu faqat array, table shuni kutyapti
+const list = ref<Reviewer[]>([]);
+
+// pagination – faqat meta
+const pagination = reactive<Pagination<Reviewer>>({
   current: 1,
-  size: 5,
+  per_page: 10,
+  size: 10,
   total: 0,
 });
-const sorting = reactive({
-  date: "asc",
-  status: "",
+
+const sorting = reactive<SortingState>({
+  created_at: "",
+  science_field_id: "",
 });
-const statusList = ref([
-  { label: "Активен", value: "active" },
-  { label: "Не активен", value: "inactive" },
-]);
-
-// watch(search, async (currentValue) => {
-//   pagination.current = 1;
-//   if (currentValue === "") await fetchList();
-// });
-
-// watch(role, async (currentValue) => {
-//   pagination.current = 1;
-//   fetchList();
-// });
 
 const fetchList = async () => {
   loading.value = true;
-  const params = {
+
+  const params: QueryParams = {
+    created_at: formateDate(sorting.created_at, "-"),
     page: pagination.current,
-    phrase: search.value,
-    role: role.value,
+    science_field_id: sorting.science_field_id,
   };
-  const { data } = await GET(`admin/article`, params);
-  const { total_count, users } = data;
-  list.value = users.data;
-  pagination.size = users.per_page;
-  pagination.total = total_count;
+
+  // Backend javobi Pagination<Reviewer> formata deb faraz qilamiz
+  const { data, status } = await GET<Pagination<Reviewer>>(
+    "chief-editor/archived-reviewers",
+    params
+  );
+  console.log(data, "dataaaa");
+
+  if (status && data) {
+    // data: Pagination<Reviewer>
+    list.value = data.data || [];
+    pagination.size = data.per_page;
+    pagination.total = data.total;
+  } else {
+    messageMeneger("Ошибка", "error");
+  }
+
   loading.value = false;
 };
 
-const fakeDataList = ref([
-  {
-    author: "Хамидов Бахтияр",
-    endDate: "12.12.2022",
-    id: 1,
-    name: "Lorem ipsum dolor sit amet",
-    startDate: "12.12.2022",
-    status: "Статус",
-  },
-  {
-    author: "Хамидов Бахтияр",
-    endDate: "12.12.2022",
-    id: 2,
-    name: "Lorem ipsum dolor sit amet",
-    startDate: "12.12.2022",
-    status: "Статус",
-  },
-  {
-    author: "Хамидов Бахтияр",
-    endDate: "12.12.2022",
-    id: 3,
-    name: "Lorem ipsum dolor sit amet",
-    startDate: "12.12.2022",
-    status: "Статус",
-  },
-  {
-    author: "Хамидов Бахтияр",
-    endDate: "12.12.2022",
-    id: 4,
-    name: "Lorem ipsum dolor sit amet",
-    startDate: "12.12.2022",
-    status: "Статус",
-  },
-  {
-    author: "Хамидов Бахтияр",
-    endDate: "12.12.2022",
-    id: 5,
-    name: "Lorem ipsum dolor sit amet",
-    startDate: "12.12.2022",
-    status: "Статус",
-  },
-  {
-    author: "Хамидов Бахтияр",
-    endDate: "12.12.2022",
-    id: 6,
-    name: "Lorem ipsum dolor sit amet",
-    startDate: "12.12.2022",
-    status: "Статус",
-  },
-  {
-    author: "Хамидов Бахтияр",
-    endDate: "12.12.2022",
-    id: 7,
-    name: "Lorem ipsum dolor sit amet",
-    startDate: "12.12.2022",
-    status: "Статус",
-  },
-]);
-
-// const removeItem = async (id) => {
-//   await DELETE(`admin/article/${id}`);
-//   messageMeneger("Пользователь удален");
-//   await fetchList();
-// };
-
 onMounted(async () => {
   await fetchList();
+  const { data, status } = await GET<RequirementsScientificActivity[]>(
+    "requirements/scientific-activity"
+  );
+  if (status && data) {
+    requirementsScientificActivity.value = data;
+  }
 });
 </script>
 
 <template>
   <div class="page">
-    <div class="d-flex mb-30 between">
+    <!-- <div class="d-flex mb-30 between">
       <el-button
         class="h-50 blue"
         @click.prevent="router.push('/cabinet/admin/article/create')">
@@ -124,71 +73,106 @@ onMounted(async () => {
           class="ml-8"
           name="add" />
       </el-button>
-    </div>
+    </div> -->
+
     <div class="bg-white large d-flex gap-12 mb-30">
       <el-select
-        v-model="sorting.status"
+        v-model="sorting.science_field_id"
         class="mr-20"
         placeholder="Выберите статус">
         <el-option
-          v-for="(item, index) in statusList"
+          label="Все"
+          value="" />
+        <el-option
+          v-for="(item, index) in requirementsScientificActivity"
           :key="index"
-          :label="item.label"
-          :value="item.value" />
+          :label="activeL(item, 'title')"
+          :value="item.id" />
       </el-select>
+
       <Provider>
         <el-date-picker
-          v-model="sorting.date"
+          v-model="sorting.created_at"
           class="mr-20"
           :first-day-of-week="1"
           type="date"
           format="DD.MM.YYYY"
           value-format="DD.MM.YYYY"
-          placeholder="Выберите дату"
-      /></Provider>
+          clearable
+          placeholder="Выберите дату" />
+      </Provider>
+
       <el-button
         class="h-50 dark"
         @click.prevent="fetchList">
         Применить
       </el-button>
     </div>
-    <!-- <Provider :isServer="true"> -->
     <LoaderBox
       :loading="loading"
-      :is-empty="fakeDataList.length === 0">
+      :is-empty="list.length === 0">
       <div class="bg-white">
         <el-table
-          :data="fakeDataList"
+          :data="list"
           highlight-current-row
           border
           stripe>
           <el-table-column
             fixed
             prop="name"
-            label="Название статьи"
+            label="ФИО"
             show-overflow-tooltip />
+
           <el-table-column
-            prop="author"
-            label="Имя автора" />
+            fixed
+            prop="email"
+            label="Email"
+            show-overflow-tooltip />
+
           <el-table-column
-            prop="status"
-            label="Статус" />
+            fixed
+            prop="work_place"
+            label="Место работы"
+            show-overflow-tooltip />
+
           <el-table-column
-            prop="startDate"
-            label="Дата начала" />
+            fixed
+            prop="position"
+            label="Должность"
+            show-overflow-tooltip />
+
           <el-table-column
-            prop="endDate"
-            label="Дата окончания" />
+            fixed
+            prop="academic_degree"
+            label="Ученая степень"
+            show-overflow-tooltip />
+
+          <el-table-column
+            fixed
+            prop="scientific_activity"
+            label="Научная степень"
+            show-overflow-tooltip>
+            <template #default="{ row }">
+              {{ activeL(row.scientific_activity, "title") }}
+            </template>
+          </el-table-column>
 
           <el-table-column
             fixed="right"
             label="Действие"
-            width="280">
-            <template #default>
-              <el-button class="blue"> Назначить рецензентов </el-button>
+            width="230">
+            <template #default="{ row }">
+              <el-button
+                class="blue"
+                @click.prevent="
+                  router.push(`/cabinet/editor/user/archive/${row.id}`)
+                ">
+                Просмотреть детали
+              </el-button>
             </template>
           </el-table-column>
         </el-table>
+
         <el-pagination
           v-if="pagination.total > pagination.size"
           v-model:current-page="pagination.current"
@@ -199,6 +183,5 @@ onMounted(async () => {
           @current-change="fetchList" />
       </div>
     </LoaderBox>
-    <!-- </Provider> -->
   </div>
 </template>

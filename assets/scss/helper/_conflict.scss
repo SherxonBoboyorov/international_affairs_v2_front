@@ -202,6 +202,14 @@
       }
     }
 
+    &-select__selection {
+      .el-tag {
+        font-size: 14px !important;
+        color: #880019 !important;
+        border-color: #880019 !important;
+      }
+    }
+
     &-button {
       display: inline-flex;
       height: 44px;
@@ -505,7 +513,7 @@
         padding: 0 !important;
 
         .cell {
-          padding: 20px;
+          padding: 10px;
         }
       }
     }

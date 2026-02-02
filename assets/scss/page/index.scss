@@ -15,6 +15,15 @@
   }
 
   &-form {
+    &-header {
+      h1 {
+        font-size: 30px;
+        font-weight: 700;
+        color: #880019;
+        text-transform: uppercase;
+      }
+    }
+
     &-body {
       &-hr {
         margin: 40px 0;
@@ -302,7 +311,7 @@ select:focus {
   }
 
   /* Belgilangan joyni kengaytirish */
-  #contentToPrint {
+  #content-to-print {
     /* Ichidagi kontentni bo'linishdan saqlash */
     width: 100%;
     break-before: always;

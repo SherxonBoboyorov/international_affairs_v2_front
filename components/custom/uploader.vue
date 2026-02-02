@@ -18,7 +18,11 @@ const props = defineProps({
     ],
     type: Array,
   },
+  buttonClass: { default: "", type: String },
   buttonColor: { default: "#000", type: String },
+  buttonStyle: { default: "", type: String },
+  buttonText: { default: "Загрузить файл", type: String },
+  buttonType: { default: "success", type: String },
   class: { default: "", type: String },
   iconName: { default: "file-upload", type: String },
   isCelarUploadedFiles: { default: false, type: Boolean },
@@ -31,8 +35,6 @@ const props = defineProps({
   isViewUploadedFiles: { default: true, type: Boolean },
   maxSize: { default: 2, type: Number },
   oldFiles: { default: () => [], type: Array },
-  text: { default: "Загрузить файл", type: String },
-  type: { default: "success", type: String },
 });
 
 const uploadedFiles = ref([]);
@@ -133,10 +135,12 @@ const removeFile = (index) => {
   <div class="custom-uploader">
     <el-button
       v-if="!isDrag"
-      :type="type"
+      :type="buttonType"
       :color="buttonColor"
+      :class="buttonClass"
+      :style="buttonStyle"
       @click.prevent="triggerFileInput">
-      {{ text }}
+      {{ buttonText }} <slot name="icon" />
     </el-button>
 
     <!-- Drag & Drop zonasi -->
@@ -144,7 +148,7 @@ const removeFile = (index) => {
     <div
       v-if="isDrag"
       class="custom-uploader-drop drop-zone"
-      :type="type"
+      :type="buttonType"
       :disabled="!isMultiple && !!uploadedFiles.length"
       :style="`height: ${isDragBlockHeight}px !important;`"
       @click="triggerFileInput"
@@ -162,7 +166,7 @@ const removeFile = (index) => {
     </div>
 
     <!-- Yuklangan fayllar ro'yxati -->
-    <div v-if="uploadedFiles.length || isViewUploadedFiles">
+    <div v-if="uploadedFiles.length && isViewUploadedFiles">
       <ul>
         <template v-for="(file, index) in uploadedFiles">
           <li

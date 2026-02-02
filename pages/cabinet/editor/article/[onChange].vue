@@ -1,188 +1,50 @@
-<script setup>
-import { Check, Close } from "@element-plus/icons-vue";
-
-const router = useRouter();
+<script setup lang="ts">
 const route = useRoute();
-const ruleFormRef = ref();
-const variebleStore = useVariebleStore();
-const isEdit =
-  route.params.onChange !== "create" &&
-  !Number.isNaN(Number(route.params.onChange));
-const loading = ref(true);
+const config = useRuntimeConfig();
+const onChangeParam = route.params.onChange as string;
+const data = ref<ArticleReview>();
+const popupVisible = ref<boolean>(false);
+const popupChangeDeadlineVisible = ref<boolean>(false);
+const loading = ref<boolean>(true);
 
-const ruleForm = reactive({
-  active: false,
-  date_of_hiring: "",
-  department_id: "",
-  email: "",
-  given_name: "",
-  job_title_id: "",
-  name: "",
-  password: "",
-  password_confirmation: "",
-  patronymic: "",
-  personnel_number: "",
-  role: "",
-  surname: "",
-});
-
-const rules = reactive({
-  date_of_hiring: [
-    {
-      message: "Поле обязательно к заполнению",
-      required: true,
-      trigger: "change",
-    },
-  ],
-  department_id: [
-    {
-      message: "Поле обязательно к заполнению",
-      required: true,
-      trigger: "change",
-    },
-  ],
-  email: [
-    {
-      message: "Поле обязательно к заполнению",
-      required: true,
-      trigger: "change",
-    },
-    { message: "Введите корректный email", trigger: "change", type: "email" },
-  ],
-  given_name: [
-    {
-      message: "Поле обязательно к заполнению",
-      required: true,
-      trigger: "change",
-    },
-  ],
-  job_title_id: [
-    {
-      message: "Поле обязательно к заполнению",
-      required: true,
-      trigger: "change",
-    },
-  ],
-  name: [
-    {
-      message: "Поле обязательно к заполнению",
-      required: true,
-      trigger: "change",
-    },
-  ],
-  password: [
-    {
-      message: "Поле обязательно к заполнению",
-      required: true,
-      trigger: "change",
-    },
-  ],
-  password_confirmation: [
-    {
-      message: "Поле обязательно к заполнению",
-      required: true,
-      trigger: "change",
-    },
-    {
-      trigger: "change",
-      validator: (_, value, callback) => {
-        if (value !== ruleForm.password)
-          callback(new Error("Пароли не совпадают"));
-        else callback();
-      },
-    },
-  ],
-  patronymic: [
-    {
-      message: "Поле обязательно к заполнению",
-      required: true,
-      trigger: "change",
-    },
-  ],
-  personnel_number: [
-    {
-      message: "Поле обязательно к заполнению",
-      required: true,
-      trigger: "change",
-    },
-  ],
-  role: [
-    {
-      message: "Поле обязательно к заполнению",
-      required: true,
-      trigger: "change",
-    },
-  ],
-  surname: [
-    {
-      message: "Поле обязательно к заполнению",
-      required: true,
-      trigger: "change",
-    },
-  ],
-});
-
-const submitForm = async (formEl) => {
-  if (!formEl) return;
-  await formEl.validate();
-  const payload = {
-    ...ruleForm,
-    active: boolenToString(ruleForm.active),
-    date_of_hiring: formateDate(ruleForm.date_of_hiring, "-"),
-  };
-
-  const status = ref(false);
-
-  if (isEdit) {
-    status.value = await PUT(`admin/article/${route.params.onChange}`, payload);
-  } else {
-    status.value = await POST(`admin/article`, payload);
-  }
-
-  if (status.value) {
-    messageMeneger(
-      route.params.onChange === "create"
-        ? "Пользователь создан"
-        : "Пользователь обновлен"
+const fetchData = async () => {
+  loading.value = true;
+  popupVisible.value = false;
+  try {
+    const { data: responseData } = await GET<ArticleReview>(
+      `chief-editor/reviewer-articles/${onChangeParam}`
     );
-    router.push("/cabinet/admin/article");
+    if (responseData) {
+      console.log(responseData, "responseData");
+      data.value = responseData;
+    }
+  } catch (error) {
+    console.error("Ma'lumotni yuklashda xatolik:", error);
+  } finally {
+    loading.value = false;
   }
 };
 
-const departmentList = ref([]);
-const jobTitleList = ref([]);
-const roleList = ref([]);
+const handleFile = async (file: File) => {
+  const formData = new FormData();
+  formData.append("title", data.value?.article_title || "");
+  formData.append("fio", data.value?.authors_name || "");
+  formData.append("edited_file", file);
+  formData.append("deadline", data.value?.deadline?.split("T")[0] || "");
+  const { status } = await POST<ArticleReview>(
+    data.value?.type === "internal"
+      ? `chief-editor/reviewer-articles/${onChangeParam}/edited-file`
+      : `chief-editor/reviewer-articles/${onChangeParam}/convert`,
+    formData
+  );
+  if (status) {
+    messageMeneger("Информация успешно обновлена.");
+    await fetchData();
+  }
+};
 
 onMounted(async () => {
-  loading.value = true;
-
-  const resDepartment = await GET("admin/department");
-  departmentList.value = resDepartment?.data ?? [];
-
-  const resJobTitle = await GET("admin/requirements/job-titles");
-  jobTitleList.value = resJobTitle?.data ?? [];
-
-  const resRole = await GET("admin/requirements/get-roles");
-  roleList.value = resRole?.data ?? [];
-
-  if (isEdit) {
-    const userRes = await GET(`admin/article/${route.params.onChange}`);
-    const user = userRes?.data?.user;
-
-    if (user) {
-      Object.keys(ruleForm).forEach((key) => {
-        if (Object.prototype.hasOwnProperty.call(user, key)) {
-          ruleForm[key] = user[key] ?? ruleForm[key];
-        }
-      });
-      ruleForm.role = user.roles[0].name;
-      ruleForm.active = boolenToString(user.active);
-      ruleForm.date_of_hiring = formateDate(user.date_of_hiring);
-      ruleForm.password = "";
-      ruleForm.password_confirmation = "";
-    }
-  }
-  loading.value = false;
+  await fetchData();
 });
 </script>
 
@@ -190,197 +52,294 @@ onMounted(async () => {
   <LoaderBox
     :loading="loading"
     :blur-px="30">
-    <div class="page bg-white large">
-      <div class="page-form-header">
-        <h1 class="mb-20">
-          {{
-            route.params.onChange === "create"
-              ? "Создание пользователя"
-              : "Редактирование пользователя"
-          }}
-        </h1>
+    <div class="page">
+      <div class="page-form-header mb-24">
+        <h1>{{ data?.article_title }}</h1>
       </div>
-
       <div class="page-form-body">
-        <!-- <pre>{{ ruleForm }}</pre> -->
+        <div
+          class="d-flex mb-40"
+          style="align-items: flex-start">
+          <a
+            download
+            :href="`${
+              data?.type === 'internal'
+                ? config.public.apiImgUrl + data?.file_path
+                : data?.file_path
+            }`">
+            <el-button class="blue">
+              Скачать файл
+              <svg
+                class="ml-12"
+                viewBox="0 0 16.5 19.5"
+                xmlns="http://www.w3.org/2000/svg"
+                xmlns:xlink="http://www.w3.org/1999/xlink"
+                width="16.500000"
+                height="19.500000"
+                fill="none"
+                customFrame="#000000">
+                <g id="Group">
+                  <path
+                    id="Vector"
+                    d="M15.3506 18.3445C15.0949 18.6041 14.748 18.75 14.3864 18.75L2.11364 18.75C1.75198 18.75 1.40513 18.6041 1.1494 18.3445C0.893668 18.0848 0.75 17.7326 0.75 17.3654L0.75 2.13462C0.75 1.76739 0.893668 1.41521 1.1494 1.15554C1.40513 0.895879 1.75198 0.75 2.11364 0.75L10.9773 0.75L15.75 5.59615L15.75 17.3654C15.75 17.7326 15.6063 18.0848 15.3506 18.3445Z"
+                    fill-rule="nonzero"
+                    stroke="rgb(255,255,255)"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.500000" />
+                  <path
+                    id="Vector"
+                    d="M10.978 11.1352L8.25071 13.9044L5.52344 11.1352M8.25071 13.9044L8.25071 6.28906"
+                    fill-rule="nonzero"
+                    stroke="rgb(255,255,255)"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.500000" />
+                </g>
+              </svg>
+            </el-button>
+          </a>
 
-        <el-form
-          ref="ruleFormRef"
-          :model="ruleForm"
-          :rules="rules"
-          label-position="top"
-          status-icon
-          auto-complete="off">
-          <el-row
-            class="gap-20"
-            :gutter="20">
-            <el-col :span="8">
-              <el-form-item
-                label="Имя"
-                prop="given_name">
-                <el-input v-model="ruleForm.given_name" />
-              </el-form-item>
-            </el-col>
-
-            <el-col :span="8">
-              <el-form-item
-                label="Фамилия"
-                prop="surname">
-                <el-input v-model="ruleForm.surname" />
-              </el-form-item>
-            </el-col>
-
-            <el-col :span="8">
-              <el-form-item
-                label="Отчество"
-                prop="patronymic">
-                <el-input v-model="ruleForm.patronymic" />
-              </el-form-item>
-            </el-col>
-
-            <el-col :span="8">
-              <el-form-item
-                label="Логин"
-                prop="name">
-                <el-input v-model="ruleForm.name" />
-              </el-form-item>
-            </el-col>
-
-            <el-col :span="8">
-              <el-form-item
-                label="Пароль"
-                prop="password">
-                <el-input
-                  v-model="ruleForm.password"
-                  type="password"
-                  show-password />
-              </el-form-item>
-            </el-col>
-
-            <el-col :span="8">
-              <el-form-item
-                label="Подтверждение пароля"
-                prop="password_confirmation">
-                <el-input
-                  v-model="ruleForm.password_confirmation"
-                  autocomplete="off"
-                  type="password"
-                  show-password />
-              </el-form-item>
-            </el-col>
-
-            <el-col :span="8">
-              <el-form-item
-                label="Роль"
-                prop="role">
-                <!-- <client-only> -->
-                <el-select
-                  v-model="ruleForm.role"
-                  placeholder="Выберите роль">
-                  <el-option
-                    v-for="(item, index) in roleList"
-                    :key="index"
-                    :label="variebleStore.roles[item] ?? item"
-                    :value="item" />
-                </el-select>
-                <!-- </client-only> -->
-              </el-form-item>
-            </el-col>
-
-            <el-col :span="8">
-              <el-form-item
-                label="Отдел"
-                prop="department_id">
-                <!-- <client-only> -->
-                <el-select
-                  v-model="ruleForm.department_id"
-                  placeholder="Выберите отдел">
-                  <el-option
-                    v-for="(item, index) in departmentList"
-                    :key="index"
-                    :label="activeL(item, 'title')"
-                    :value="item.id" />
-                </el-select>
-                <!-- </client-only> -->
-              </el-form-item>
-            </el-col>
-
-            <el-col :span="8">
-              <el-form-item
-                label="Должность"
-                prop="job_title_id">
-                <!-- <client-only> -->
-                <el-select
-                  v-model="ruleForm.job_title_id"
-                  placeholder="Выберите должность">
-                  <el-option
-                    v-for="(item, index) in jobTitleList"
-                    :key="index"
-                    :label="activeL(item, 'title')"
-                    :value="item.id" />
-                </el-select>
-                <!-- </client-only> -->
-              </el-form-item>
-            </el-col>
-
-            <el-col :span="8">
-              <el-form-item
-                label="Email"
-                prop="email">
-                <el-input v-model="ruleForm.email" />
-              </el-form-item>
-            </el-col>
-
-            <el-col :span="8">
-              <el-form-item
-                label="Табельный номер"
-                prop="personnel_number">
-                <el-input v-model="ruleForm.personnel_number" />
-              </el-form-item>
-            </el-col>
-
-            <el-col :span="8">
-              <el-form-item
-                label="Дата трудоустройства"
-                prop="date_of_hiring">
-                <el-date-picker
-                  v-model="ruleForm.date_of_hiring"
-                  :first-day-of-week="1"
-                  type="date"
-                  format="DD.MM.YYYY"
-                  value-format="DD.MM.YYYY"
-                  placeholder="" />
-              </el-form-item>
-            </el-col>
-
-            <el-col :span="8">
-              <el-form-item
-                label="Активность"
-                prop="active">
-                <el-switch
-                  v-model="ruleForm.active"
-                  :active-icon="Check"
-                  :inactive-icon="Close"
-                  inline-prompt />
-              </el-form-item>
-            </el-col>
-          </el-row>
-        </el-form>
-        <div class="page-form-body-hr"></div>
-      </div>
-
-      <div class="page-form-footer">
+          <div>
+            <CustomUploader
+              button-class="blue ml-12"
+              button-style="height: 44px !important; padding: 0 15px !important;"
+              :button-text="
+                data?.edited_file_name
+                  ? `Заменить файл (${data?.edited_file_name})`
+                  : 'Загрузить файл'
+              "
+              button-type="default"
+              :accept-format="[
+                'application/pdf',
+                'application/msword',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+              ]"
+              :is-view-uploaded-files="false"
+              @click.stop
+              @update:files="(files) => handleFile(files)">
+              <template #icon>
+                <svg
+                  class="ml-12"
+                  viewBox="0 0 16.5 19.5"
+                  xmlns="http://www.w3.org/2000/svg"
+                  xmlns:xlink="http://www.w3.org/1999/xlink"
+                  width="16.500000"
+                  height="19.500000"
+                  fill="none"
+                  customFrame="#000000">
+                  <g id="Group">
+                    <path
+                      id="Vector"
+                      d="M15.3506 18.3445C15.0949 18.6041 14.748 18.75 14.3864 18.75L2.11364 18.75C1.75198 18.75 1.40513 18.6041 1.1494 18.3445C0.893668 18.0848 0.75 17.7326 0.75 17.3654L0.75 2.13462C0.75 1.76739 0.893668 1.41521 1.1494 1.15554C1.40513 0.895879 1.75198 0.75 2.11364 0.75L10.9773 0.75L15.75 5.59615L15.75 17.3654C15.75 17.7326 15.6063 18.0848 15.3506 18.3445Z"
+                      fill-rule="nonzero"
+                      stroke="rgb(255,255,255)"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.500000" />
+                    <path
+                      id="Vector"
+                      d="M5.45455 4.84615L2.72727 7.61538L0 4.84615M2.72727 7.61538L2.72727 3.80769L2.72727 0"
+                      fill-rule="nonzero"
+                      stroke="rgb(255,255,255)"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.500000"
+                      transform="matrix(-1,8.74228e-08,-8.74228e-08,-1,10.9766,13.9043)" />
+                  </g>
+                </svg>
+              </template>
+            </CustomUploader>
+            <a
+              v-if="data?.edited_file_path"
+              :href="`${config.public.apiImgUrl + data?.edited_file_path}`"
+              download
+              style="
+                margin: 8px 0 0 12px;
+                font-size: 12px;
+                color: #494949;
+                text-decoration: underline;
+              ">
+              Скачать загруженный файл ({{ data?.edited_file_name }})
+            </a>
+          </div>
+        </div>
+        <ul class="mb-40">
+          <li>
+            <span>Ф.И.О:</span>
+            <span>{{ data?.authors_name }}</span>
+          </li>
+          <li>
+            <span>Описание:</span>
+            <span>{{ data?.article_title }}</span>
+          </li>
+          <li>
+            <span>Срок выполнения:</span>
+            <span>{{ formateDate(data?.deadline?.split("T")[0]) }}</span>
+          </li>
+          <li>
+            <span>Статус:</span>
+            <span
+              :class="data?.status"
+              class="article-status"
+              >{{
+                data?.status === "not_assigned"
+                  ? "Не назначен"
+                  : data?.status === "assigned"
+                    ? "Назначен"
+                    : data?.status === "in_progress"
+                      ? "В работе"
+                      : data?.status === "completed"
+                        ? "Завершен"
+                        : data?.status === "rejected"
+                          ? "Отклонен"
+                          : data?.status === "overdue"
+                            ? "Просрочен"
+                            : ""
+              }}</span
+            >
+          </li>
+        </ul>
+        <hr />
+        <div class="page-form-header mb-24">
+          <h1>Рецензенты</h1>
+        </div>
+        <ul class="mb-40">
+          <li
+            v-for="(item, index) in data?.assignments"
+            :key="index">
+            <span class="mr-20">{{ item.name }}</span>
+            <span
+              :class="item.status"
+              class="article-status mr-auto"
+              >{{
+                item.status === "not_assigned"
+                  ? "Не назначен"
+                  : item.status === "assigned"
+                    ? "Назначен"
+                    : item.status === "in_progress"
+                      ? "В работе"
+                      : item.status === "completed"
+                        ? "Завершен"
+                        : item.status === "rejected"
+                          ? "Отклонен"
+                          : item.status === "overdue"
+                            ? "Просрочен"
+                            : ""
+              }}</span
+            >
+            <span>{{ item.description }}</span>
+          </li>
+        </ul>
+        <hr />
         <el-button
-          class="p-50 grey"
-          @click.prevent="router.go(-1)"
-          >Отмена</el-button
-        >
+          class="dark"
+          @click="popupVisible = true">
+          Назначить дополнительного рецензента
+        </el-button>
         <el-button
-          class="p-50 dark"
-          @click.prevent="submitForm(ruleFormRef)"
-          >Сохранить</el-button
-        >
+          class="blue"
+          @click="popupChangeDeadlineVisible = true">
+          Продлить дедлайн
+        </el-button>
       </div>
     </div>
+    <LazyPopupAdminAddDeadline
+      v-model:visible="popupVisible"
+      @create="fetchData"
+      @cancel="popupVisible = false" />
+    <LazyPopupAdminChangeDeadline
+      v-model:visible="popupChangeDeadlineVisible"
+      :assignments="data?.assignments || []"
+      @create="fetchData"
+      @cancel="popupChangeDeadlineVisible = false" />
   </LoaderBox>
 </template>
+
+<style scoped lang="scss">
+ul {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    font-size: 18px;
+    font-weight: 500;
+    color: #123654;
+    border-bottom: 1px solid #1236541c;
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+}
+
+.article-status {
+  position: relative;
+  padding-left: 14px;
+
+  &::after {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 12px;
+    height: 12px;
+    content: "";
+    border-radius: 50%;
+    transform: translateY(-50%);
+  }
+
+  &.not_assigned {
+    color: #123654;
+
+    &::after {
+      background-color: #123654;
+    }
+  }
+
+  &.assigned {
+    color: #0e74c9;
+
+    &::after {
+      background-color: #0e74c9;
+    }
+  }
+
+  &.in_progress {
+    color: #880019;
+
+    &::after {
+      background-color: #880019;
+    }
+
+    &.completed {
+      color: #55ae43;
+
+      &::after {
+        background-color: #55ae43;
+      }
+    }
+
+    &.rejected {
+      color: #f0f;
+
+      &::after {
+        background-color: #f0f;
+      }
+    }
+
+    &.overdue {
+      color: #ff0004;
+
+      &::after {
+        background-color: #ff0004;
+      }
+    }
+  }
+}
+</style>

@@ -6,12 +6,16 @@ export default defineNuxtConfig({
     "~/assets/fonts/stylesheet.css",
     // '~/assets/scss/index.min.css',
   ],
-  devtools: { enabled: false },
+  // devServer: {
+  //   host: "0.0.0.0",
+  //   port: 3001,
+  // },
+  devtools: { enabled: true },
   experimental: {
     appManifest: false,
   },
   imports: {
-    dirs: ["store", "types"],
+    dirs: ["store", "types/**"],
   },
   modules: [
     "@nuxt/eslint",
@@ -60,6 +64,50 @@ export default defineNuxtConfig({
       },
     ],
     "@pinia-plugin-persistedstate/nuxt",
+    [
+      "@vite-pwa/nuxt",
+      {
+        devOptions: {
+          enabled: true, // Dev rejimida ham PWA ishlashini yoqish (test qilish uchun)
+          navigateFallbackAllowlist: [/^\/$/], // Fallback sahifasi uchun ruxsatlar
+          suppressWarnings: true, // Ogohlantirishlarni yashirish
+          type: "module",
+        },
+        manifest: {
+          background_color: "#ffffff", // Ilova ochilishidagi fon rangi (splash screen)
+          description: "International Affairs application", // Ilova haqida qisqacha ma'lumot
+          display: "standalone", // Ilova brauzer panellarisiz, alohida dastur kabi ochiladi
+          icons: [
+            {
+              sizes: "192x192",
+              src: "/pwa-192x192.png", // 192x192 o'lchamdagi belgi (mobil qurilmalar uchun)
+              type: "image/png",
+            },
+            {
+              sizes: "512x512",
+              src: "/pwa-512x512.png", // 512x512 o'lchamdagi belgi (splash screen va kattaroq ekranlar uchun)
+              type: "image/png",
+            },
+            {
+              purpose: "any", // Mana shu qatorni qo'shing
+              sizes: "192x192",
+              src: "/pwa-192x192.png",
+              type: "image/png",
+            },
+          ],
+          name: "International Affairs", // Ilovaning to'liq nomi (o'rnatilganda ko'rinadi)
+          orientation: "portrait", // Ilova faqat vertikal rejimda ishlaydi (ixtiyoriy)
+          scope: "/", // PWA ishlash doirasi (butun sayt uchun)
+          short_name: "Int. Affairs", // Ilovaning qisqa nomi (ekranda joy kam bo'lganda ko'rinadi)
+          start_url: "/", // Ilova ishga tushganda ochiladigan sahifa
+          theme_color: "#ffffff", // Ilova mavzusi rangi (status bar va boshqalar uchun)
+        },
+        registerType: "autoUpdate", // Servis worker yangilanishi avtomatik amalga oshadi (foydalanuvchi tasdiqlashini kutmaydi)
+        workbox: {
+          globPatterns: ["**/*.{js,css,html,png,svg,ico}"], // Keshlash uchun fayl turlari (oflayn ishlash uchun)
+        },
+      },
+    ],
   ],
   nitro: {
     experimental: {
@@ -72,18 +120,15 @@ export default defineNuxtConfig({
       },
     },
   },
+  // https://iab.unknown-gruop.uz/
   runtimeConfig: {
     public: {
-      apiBase: "http://192.168.1.113:8000/api/",
-      apiImgUrl: "http://192.168.1.113:8000/storage/",
-      baseUrl: "http://192.168.1.113:8000",
+      apiBase: "https://iab.unknown-gruop.uz/api/",
+      apiImgUrl: "https://iab.unknown-gruop.uz/storage/",
+      baseUrl: "https://iab.unknown-gruop.uz/",
       tinymceKEY: "ptshvlsgd005gl07uua59lyyiiqia5pfqv5n0un2dbi820nj",
     },
   },
-  // devServer: {
-  //   host: '0.0.0.0',
-  //   port: 3001s
-  // },
   ssr: false,
   vite: {
     build: {
@@ -129,6 +174,5 @@ export default defineNuxtConfig({
   },
 });
 
-// apiBase: process.env.API_BASE_URL,
 // apiImgUrl: process.env.API_BASE_IMAGE_URL,
 // tinymceKEY: process.env.NUXT_BASE_TINYMCE_KEY,

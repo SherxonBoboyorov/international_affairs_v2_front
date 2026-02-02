@@ -2,7 +2,9 @@
 import type { FormInstance, FormRules } from "element-plus";
 const variebleStore = useVariebleStore();
 const authStore = useAuthStore();
-
+const requirementsScientificActivity = ref<RequirementsScientificActivity[]>(
+  []
+);
 definePageMeta({
   layout: "auth",
 });
@@ -22,6 +24,7 @@ const isAuthType = ref<
 const ruleForm = reactive({
   academic_degree: "",
   code: "",
+  diploma_file: "",
   diploma_issued_by: "",
   email: "",
   institutional_phone: "",
@@ -30,7 +33,7 @@ const ruleForm = reactive({
   password: "",
   password_repeat: "",
   position: "",
-  science_field: "",
+  science_field_id: "",
   work_place: "",
 });
 
@@ -44,6 +47,13 @@ const rules = reactive<FormRules>({
   ],
   // verify-reset-code
   code: [
+    {
+      message: "Поле обязательно к заполнению",
+      required: true,
+      trigger: "blur",
+    },
+  ],
+  diploma_file: [
     {
       message: "Поле обязательно к заполнению",
       required: true,
@@ -123,14 +133,13 @@ const rules = reactive<FormRules>({
       trigger: "blur",
     },
   ],
-  science_field: [
+  science_field_id: [
     {
       message: "Поле обязательно к заполнению",
       required: true,
       trigger: "blur",
     },
   ],
-
   work_place: [
     {
       message: "Поле обязательно к заполнению",
@@ -163,7 +172,8 @@ const submitForm = async (formEl: FormInstance | undefined) => {
       formData.append("academic_degree", ruleForm.academic_degree);
       formData.append("work_place", ruleForm.work_place);
       formData.append("position", ruleForm.position);
-      formData.append("science_field", ruleForm.science_field);
+      formData.append("diploma_file", ruleForm.diploma_file);
+      formData.append("science_field_id", ruleForm.science_field_id);
       formData.append("diploma_issued_by", ruleForm.diploma_issued_by);
       formData.append("orcid", ruleForm.orcid);
       const { status } = await authStore.register(formData);
@@ -215,6 +225,15 @@ const submitForm = async (formEl: FormInstance | undefined) => {
     loading.value = false;
   }
 };
+
+onMounted(async () => {
+  const { data, status } = await GET<RequirementsScientificActivity[]>(
+    "requirements/scientific-activity"
+  );
+  if (status && data) {
+    requirementsScientificActivity.value = data;
+  }
+});
 </script>
 
 <template>
@@ -255,12 +274,12 @@ const submitForm = async (formEl: FormInstance | undefined) => {
             <el-form-item prop="name">
               <el-input
                 v-model="ruleForm.name"
-                placeholder="Имя" />
+                placeholder="ФИО" />
             </el-form-item>
             <el-form-item prop="email">
               <el-input
                 v-model="ruleForm.email"
-                placeholder="Email" />
+                placeholder="Институциональный Email" />
             </el-form-item>
             <el-form-item prop="password">
               <el-input
@@ -279,7 +298,7 @@ const submitForm = async (formEl: FormInstance | undefined) => {
             <el-form-item prop="institutional_phone">
               <el-input
                 v-model="ruleForm.institutional_phone"
-                placeholder="Институциональный телефон" />
+                placeholder="Институциональный номер телефона" />
             </el-form-item>
 
             <el-form-item prop="academic_degree">
@@ -298,7 +317,18 @@ const submitForm = async (formEl: FormInstance | undefined) => {
                 v-model="ruleForm.position"
                 placeholder="Должность" />
             </el-form-item>
-            <el-form-item prop="science_field">
+            <el-form-item prop="science_field_id">
+              <el-select
+                v-model="ruleForm.science_field_id"
+                placeholder="Сфера научной деятельности">
+                <el-option
+                  v-for="item in requirementsScientificActivity"
+                  :key="item.id"
+                  :label="activeL(item, 'title')"
+                  :value="item.id" />
+              </el-select>
+            </el-form-item>
+            <el-form-item prop="diploma_file">
               <h4
                 style="
                   margin-bottom: 10px;
@@ -310,21 +340,21 @@ const submitForm = async (formEl: FormInstance | undefined) => {
               </h4>
               <!-- accept-format="["pdf","doc","docx"]" -->
               <CustomUploader
-                type="default"
+                button-type="default"
                 class="w-full"
-                text="Выбрать файл"
+                button-text="Выбрать файл"
                 :accept-format="[
                   'application/pdf',
                   'application/msword',
                   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                 ]"
                 @click.stop
-                @update:files="(files) => (ruleForm.science_field = files)" />
+                @update:files="(files) => (ruleForm.diploma_file = files)" />
             </el-form-item>
             <el-form-item prop="diploma_issued_by">
               <el-input
                 v-model="ruleForm.diploma_issued_by"
-                placeholder="Выдавшийся документ" />
+                placeholder="Кем и когда выдан диплом" />
             </el-form-item>
             <el-form-item prop="orcid">
               <el-input

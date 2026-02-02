@@ -25,7 +25,7 @@ export const useAuthStore = defineStore(
 
         user.value = JSON.stringify({
           email: data.user.email,
-          name: `${_surname} ${_name} ${_patronymic}`.trim(),
+          name: data.user.name || `${_surname} ${_name} ${_patronymic}`.trim(),
           phone: data.user.phone,
           role: data.roles[0],
         } as AuthUser);

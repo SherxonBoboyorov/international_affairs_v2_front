@@ -24,6 +24,7 @@ export interface LoginResponse {
   user: {
     email: string;
     given_name?: string;
+    name?: string;
     patronymic?: string;
     phone: string;
     surname?: string;
@@ -39,7 +40,8 @@ export type RegisterPayload = {
   orcid: string;
   password: string;
   position: string;
-  science_field: File; // Browser file
+  science_field: File;
+  science_field_id?: string;
   work_place: string;
 };
 
