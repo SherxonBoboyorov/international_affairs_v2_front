@@ -6,9 +6,6 @@ const router = useRouter();
 const config = useRuntimeConfig();
 const onChangeParam = route.params.onChange as string;
 const data = ref<ArticleAssignment>();
-const popupCancelArticleVisible = ref<boolean>(false);
-const popupApproveArticleVisible = ref<boolean>(false);
-const popupChangeDeadlineVisible = ref<boolean>(false);
 const loading = ref<boolean>(true);
 const ruleFormRef = ref<FormInstance>();
 const recommendationList = ref<
@@ -30,18 +27,7 @@ const recommendationList = ref<
     type: "reject",
   },
 ]);
-
-const criteriaList = ref<
-  {
-    id: number;
-    max_score: number;
-    name_en: string;
-    name_ru: string;
-    name_uz: string;
-    sort_order: number;
-  }[]
->([]);
-const ruleForm = ref<{
+const ruleForm = reactive<{
   [key: string]: any;
   general_recommendation: string;
   review_comments: string;
@@ -56,14 +42,14 @@ const formRules = ref<FormRules>({
   general_recommendation: [
     {
       message: "Рекомендация обязательна",
-      required: true,
+      required: false,
       trigger: "change",
     },
   ],
   review_comments: [
     {
       message: "Обоснование решения обязательно",
-      required: true,
+      required: false,
       trigger: "blur",
     },
   ],
@@ -78,14 +64,18 @@ const formRules = ref<FormRules>({
 
 const fetchData = async () => {
   loading.value = true;
-  popupCancelArticleVisible.value = false;
-  popupApproveArticleVisible.value = false;
   try {
     const { data: responseData } = await GET<ArticleAssignment>(
-      `reviewer/articles/${onChangeParam}`
+      `reviewer/articles/in-progress/${onChangeParam}`
     );
     if (responseData) {
       data.value = responseData;
+      responseData.review_criteria.forEach((item) => {
+        ruleForm[item.id] = item.score;
+      });
+      ruleForm.general_recommendation = responseData.general_recommendation;
+      ruleForm.review_comments = responseData.review_comments;
+      // ruleForm.review_file = responseData.completed_review.review_files;
     }
   } catch (error) {
     console.error("Ma'lumotni yuklashda xatolik:", error);
@@ -94,70 +84,56 @@ const fetchData = async () => {
   }
 };
 
-const submitForm = async (formEl: FormInstance | undefined) => {
+const submitForm = async (
+  formEl: FormInstance | undefined,
+  isDraft: boolean
+) => {
   if (!formEl) return;
   loading.value = true;
   try {
     await formEl.validate();
-    const { status }: { status: boolean } = await PUT(
-      `reviewer/articles/${onChangeParam}/status`,
-      {
-        action: "accept",
+    const formData = new FormData();
+    Object.entries(ruleForm).forEach(([key, value]) => {
+      if (value !== null && key !== "review_file") {
+        formData.append(key, value);
+      } else if (key === "review_file" && value !== null) {
+        if (Array.isArray(value)) {
+          value.forEach((file) => {
+            formData.append("review_files[]", file);
+            formData.append("draft_files[]", file);
+          });
+        } else {
+          formData.append("review_files", value);
+          formData.append("draft_files", value);
+        }
       }
-    );
-    if (status) {
-      router.push("/cabinet/reviewer/new");
+    });
+    if (isDraft) {
+      const { status }: { status: boolean } = await POST(
+        `reviewer/articles/${onChangeParam}/save-draft-review`,
+        formData
+      );
+      if (status) {
+        router.push("/cabinet/reviewer/in-work");
+      }
+    } else {
+      const { status }: { status: boolean } = await POST(
+        `reviewer/articles/${onChangeParam}/submit-review`,
+        formData
+      );
+      if (status) {
+        router.push("/cabinet/reviewer/in-work");
+      }
     }
   } catch (error) {
     console.error("Ma'lumotni yuklashda xatolik:", error);
   } finally {
     loading.value = false;
-  }
-};
-
-const handleArticleCancel = async (comment: string) => {
-  const { status }: { status: boolean } = await PUT(
-    `reviewer/articles/${onChangeParam}/status`,
-    {
-      action: "reject",
-      comment,
-    }
-  );
-  if (status) {
-    router.push("/cabinet/reviewer/new");
-  }
-};
-
-const handleArticleApprove = async () => {
-  const { status }: { status: boolean } = await PUT(
-    `reviewer/articles/${onChangeParam}/status`,
-    {
-      action: "accept",
-    }
-  );
-  if (status) {
-    router.push("/cabinet/reviewer/new");
   }
 };
 
 onMounted(async () => {
   await fetchData();
-  const { data: responseData, status } = await GET<
-    {
-      id: number;
-      max_score: number;
-      name_en: string;
-      name_ru: string;
-      name_uz: string;
-      sort_order: number;
-    }[]
-  >(`requirements/review-criteria`);
-  console.log(responseData, "responseData");
-  console.log(status, "status");
-
-  if (status) {
-    criteriaList.value = responseData;
-  }
 });
 </script>
 
@@ -180,14 +156,13 @@ onMounted(async () => {
             <span>{{ formateDate(data?.deadline?.split("T")[0]) }}</span>
           </li>
           <li>
-            <span>Комментарий от Chief Editor:</span>
+            <span>Комментарий от Редактор:</span>
             <span>{{ data?.description }}</span>
           </li>
         </ul>
         <a :href="config.public.apiImgUrl + data?.file_path">
           <el-button
-            style="background-color: transparent; border: 1px solid #123654"
-            @click="popupChangeDeadlineVisible = true">
+            style="background-color: transparent; border: 1px solid #123654">
             <span
               style="
                 display: flex;
@@ -221,11 +196,10 @@ onMounted(async () => {
         <div class="bg-white large">
           <ul class="mb-20">
             <li
-              v-for="(criterion, index) in criteriaList"
+              v-for="(criterion, index) in data?.review_criteria"
               :key="index">
               <span>{{ criterion.name_ru }}:</span>
-              <span
-                >{{}}
+              <span>
                 <el-rate
                   v-model="ruleForm[`${criterion.id}`]"
                   :max="criterion.max_score"
@@ -239,7 +213,7 @@ onMounted(async () => {
             :model="ruleForm"
             :rules="formRules"
             label-position="top"
-            @keyup.enter="submitForm(ruleFormRef)">
+            @keyup.enter="submitForm(ruleFormRef, false)">
             <el-row
               :gutter="20"
               class="gap-20">
@@ -272,6 +246,7 @@ onMounted(async () => {
                   <CustomUploader
                     button-type="default"
                     class="w-full"
+                    is-multiple
                     button-text="Загрузить файл"
                     :accept-format="[
                       'application/pdf',
@@ -281,34 +256,34 @@ onMounted(async () => {
                     @click.stop
                     @update:files="(files) => (ruleForm.review_file = files)" />
                 </el-form-item>
+
+                <a
+                  v-for="(item, index) in data?.draft_files"
+                  :key="index"
+                  style="margin-right: 20px; font-weight: 600; color: #880019"
+                  :href="config.public.apiImgUrl + item.path">
+                  {{ item.original_name }}
+                </a>
               </el-col>
             </el-row>
           </el-form>
         </div>
 
         <hr class="mt-20 mb-20" />
-        <div class="d-flex">
+        <div class="d-flex between">
           <el-button
             class="blue p-50"
-            @click="popupApproveArticleVisible = true">
-            Принять
+            @click="submitForm(ruleFormRef, false)">
+            Отправить
           </el-button>
           <el-button
             class="dark mr-8 p-50"
-            @click="popupCancelArticleVisible = true">
-            Отклонить
+            @click="submitForm(ruleFormRef, true)">
+            Сохранить как черновик
           </el-button>
         </div>
       </div>
     </div>
-    <PopupReviewerCancelArticle
-      v-model:visible="popupCancelArticleVisible"
-      @cancel="popupCancelArticleVisible = false"
-      @create="(comment) => handleArticleCancel(comment || '')" />
-    <PopupReviewerApproveArticle
-      v-model:visible="popupApproveArticleVisible"
-      @cancel="popupApproveArticleVisible = false"
-      @create="handleArticleApprove" />
   </LoaderBox>
 </template>
 
@@ -318,7 +293,7 @@ ul {
   margin: 0;
   list-style: none;
 
-  li {
+  li:not(.el-select-dropdown__item) {
     display: flex;
     gap: 10px;
     align-items: center;

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const route = useRoute();
+const router = useRouter();
 const config = useRuntimeConfig();
 const onChangeParam = route.params.onChange as string;
 const data = ref<ArticleReview>();
@@ -31,12 +32,15 @@ const handleFile = async (file: File) => {
   formData.append("fio", data.value?.authors_name || "");
   formData.append("edited_file", file);
   formData.append("deadline", data.value?.deadline?.split("T")[0] || "");
-  const { status } = await POST<ArticleReview>(
+  const { data: responseData, status } = await POST<ArticleReview>(
     data.value?.type === "internal"
       ? `chief-editor/reviewer-articles/${onChangeParam}/edited-file`
       : `chief-editor/reviewer-articles/${onChangeParam}/convert`,
     formData
   );
+  if (data.value?.type === "external") {
+    router.push(`/cabinet/editor/article/${responseData?.id}`);
+  }
   if (status) {
     messageMeneger("Информация успешно обновлена.");
     await fetchData();
@@ -200,11 +204,13 @@ onMounted(async () => {
             >
           </li>
         </ul>
-        <hr />
-        <div class="page-form-header mb-24">
+        <hr v-if="data?.assignments && data?.assignments?.length > 0" />
+        <div
+          v-if="data?.assignments && data?.assignments?.length > 0"
+          class="page-form-header mt-40 mb-24">
           <h1>Рецензенты</h1>
         </div>
-        <ul class="mb-40">
+        <ul v-if="data?.assignments && data?.assignments?.length > 0">
           <li
             v-for="(item, index) in data?.assignments"
             :key="index">
@@ -223,25 +229,58 @@ onMounted(async () => {
                         ? "Завершен"
                         : item.status === "rejected"
                           ? "Отклонен"
-                          : item.status === "overdue"
-                            ? "Просрочен"
-                            : ""
-              }}</span
+                          : item.status === "refused"
+                            ? "Отклонен"
+                            : item.status === "overdue"
+                              ? "Просрочен"
+                              : ""
+              }}<small
+                v-if="item.status === 'completed'"
+                :style="{
+                  color:
+                    item.general_recommendation === 'accept'
+                      ? '#55ae43'
+                      : item.general_recommendation === 'reject'
+                        ? '#ff0004'
+                        : item.general_recommendation === 'after_revision'
+                          ? '#ff9900'
+                          : '',
+                }">
+                ({{
+                  item.general_recommendation === "accept"
+                    ? "Принять"
+                    : item.general_recommendation === "reject"
+                      ? "Отклонить"
+                      : item.general_recommendation === "after_revision"
+                        ? "Рекомендовать к доработке"
+                        : ""
+                }})</small
+              ></span
             >
-            <span>{{ item.description }}</span>
+            <el-button
+              class="grey"
+              @click="
+                router.push(
+                  `/cabinet/editor/article/${onChangeParam}/${item.reviewer_id}`
+                )
+              ">
+              Подробнее
+            </el-button>
           </li>
         </ul>
-        <hr />
-        <el-button
-          class="dark"
-          @click="popupVisible = true">
-          Назначить дополнительного рецензента
-        </el-button>
-        <el-button
-          class="blue"
-          @click="popupChangeDeadlineVisible = true">
-          Продлить дедлайн
-        </el-button>
+        <template v-if="data?.type === 'internal'">
+          <hr />
+          <el-button
+            class="dark"
+            @click="popupVisible = true">
+            Назначить дополнительного рецензента
+          </el-button>
+          <el-button
+            class="blue"
+            @click="popupChangeDeadlineVisible = true">
+            Продлить дедлайн
+          </el-button>
+        </template>
       </div>
     </div>
     <LazyPopupAdminAddDeadline
@@ -310,35 +349,43 @@ ul {
     }
   }
 
+  &.refused {
+    color: #ff0004;
+
+    &::after {
+      background-color: #ff0004;
+    }
+  }
+
+  &.completed {
+    color: #55ae43;
+
+    &::after {
+      background-color: #55ae43;
+    }
+  }
+
+  &.rejected {
+    color: #ff0004;
+
+    &::after {
+      background-color: #ff0004;
+    }
+  }
+
+  &.overdue {
+    color: #ff0004;
+
+    &::after {
+      background-color: #ff0004;
+    }
+  }
+
   &.in_progress {
     color: #880019;
 
     &::after {
       background-color: #880019;
-    }
-
-    &.completed {
-      color: #55ae43;
-
-      &::after {
-        background-color: #55ae43;
-      }
-    }
-
-    &.rejected {
-      color: #f0f;
-
-      &::after {
-        background-color: #f0f;
-      }
-    }
-
-    &.overdue {
-      color: #ff0004;
-
-      &::after {
-        background-color: #ff0004;
-      }
     }
   }
 }

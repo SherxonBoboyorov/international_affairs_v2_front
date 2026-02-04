@@ -77,7 +77,7 @@ onMounted(async () => {
             <span>{{ formateDate(data?.deadline?.split("T")[0]) }}</span>
           </li>
           <li>
-            <span>Комментарий от Chief Editor:</span>
+            <span>Комментарий от Редактор:</span>
             <span>{{ data?.description }}</span>
           </li>
         </ul>

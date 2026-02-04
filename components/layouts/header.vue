@@ -36,13 +36,13 @@ const userData = computed(() => {
         </h3>
         <h4>{{ (variebleStore.roles as any)[authStore.role] }}</h4>
       </div>
-      <el-badge :value="4">
+      <!-- <el-badge :value="4">
         <el-button class="">
           <Svg
             name="notification"
             class="mr-0"
         /></el-button>
-      </el-badge>
+      </el-badge> -->
     </div>
   </div>
 </template>
